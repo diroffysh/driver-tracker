@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn-in {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-out {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn-report {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-export {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .records {
+            margin-top: 40px;
+        }
+        
+        .records h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f8f8;
+            font-weight: 600;
+            color: #555;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .filter-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .location-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Driver Time Tracker</h1>
+        
+        <div id="messageBox"></div>
+        
+        <div class="form-group">
+            <label for="driverName">Driver Name</label>
+            <input type="text" id="driverName" placeholder="Enter driver name" autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+            <label for="vehicleType">Vehicle Type</label>
+            <select id="vehicleType">
+                <option value="">-- Select Vehicle --</option>
+                <option value="Ambulance Big">Ambulance Big</option>
+                <option value="Ambulance Small">Ambulance Small</option>
+                <option value="Hatchback Car">Hatchback Car</option>
+                <option value="College Bus 1">College Bus 1</option>
+                <option value="College Bus 2">College Bus 2</option>
+                <option value="College Bus 3">College Bus 3</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="vehicleNumber">Vehicle Number</label>
+            <input type="text" id="vehicleNumber" placeholder="e.g., KA-01-AB-1234" autocomplete="off">
+        </div>
+        
+        <div class="location-info" id="locationInfo">📍 Location will be captured automatically</div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn btn-in" id="timeInBtn" onclick="recordTime('IN')">🟢 Time In</button>
+            <button class="btn btn-out" id="timeOutBtn" onclick="recordTime('OUT')">🔴 Time Out</button>
+        </div>
+        
+        <div id="managerSection" style="display: none;">
+            <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #eee;">
+                <div style="padding: 20px; background: #f0f8ff; border-radius: 4px;">
+                    <label for="managerPassword">Manager Password</label>
+                    <input type="password" id="managerPassword" placeholder="Enter password" style="margin-top: 5px;">
+                    <button class="btn btn-in" onclick="verifyManager()" style="margin-top: 10px;">Login</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="records" id="recordsSection" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2>📊 All Driver Records</h2>
+                <button class="btn btn-out" onclick="logoutManager()" style="padding: 8px 16px; font-size: 14px;">Logout</button>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filterDate">Filter by Date</label>
+                        <input type="date" id="filterDate" onchange="filterRecords()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterDriver">Filter by Driver</label>
+                        <input type="text" id="filterDriver" placeholder="Driver name" oninput="filterRecords()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterVehicleType">Filter by Vehicle Type</label>
+                        <select id="filterVehicleType" onchange="filterRecords()">
+                            <option value="">All Vehicles</option>
+                            <option value="Ambulance Big">Ambulance Big</option>
+                            <option value="Ambulance Small">Ambulance Small</option>
+                            <option value="Hatchback Car">Hatchback Car</option>
+                            <option value="College Bus 1">College Bus 1</option>
+                            <option value="College Bus 2">College Bus 2</option>
+                            <option value="College Bus 3">College Bus 3</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-report" onclick="loadRecords()">🔄 Refresh</button>
+                        <button class="btn btn-export" onclick="exportToCSV()">📥 Export CSV</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Driver</th>
+                            <th>Vehicle Type</th>
+                            <th>Vehicle #</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Duty Type</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr><td colspan="8" class="loading">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - REPLACE WITH YOUR GOOGLE SHEET URL
+        // ============================================
+        const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbx8s0oxw1rnYURKkIN07uLx15PiBCUflzDvBt6ZuJJ4ISlHJKLT5Ehdj0mY6odjwjEiyw/exec';
+        
+        // Manager password - change this to your desired password
+        const MANAGER_PASSWORD = 'manager123';
+        
+        let allRecords = [];
+        let isManagerMode = false;
+        
+        // Check if manager mode should be shown (URL parameter)
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('manager')) {
+                document.getElementById('managerSection').style.display = 'block';
+            }
+        });
+        
+        // ============================================
+        // TIME IN/OUT RECORDING
+        // ============================================
+        async function recordTime(type) {
+            const driverName = document.getElementById('driverName').value.trim();
+            const vehicleType = document.getElementById('vehicleType').value;
+            const vehicleNumber = document.getElementById('vehicleNumber').value.trim();
+            
+            if (!driverName || !vehicleType || !vehicleNumber) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Disable buttons during processing
+            setButtonsDisabled(true);
+            showMessage('Processing...', 'loading');
+            
+            try {
+                // Get geolocation
+                const location = await getGeolocation();
+                
+                // Check for duplicate time in
+                if (type === 'IN') {
+                    const hasPendingTimeIn = await checkPendingTimeIn(driverName, vehicleNumber);
+                    if (hasPendingTimeIn) {
+                        showMessage(`❌ ${driverName} is already timed in! Please time out first.`, 'error');
+                        setButtonsDisabled(false);
+                        return;
+                    }
+                } else if (type === 'OUT') {
+                    const hasPendingTimeIn = await checkPendingTimeIn(driverName, vehicleNumber);
+                    if (!hasPendingTimeIn) {
+                        showMessage(`❌ ${driverName} is not timed in! Please time in first.`, 'error');
+                        setButtonsDisabled(false);
+                        return;
+                    }
+                }
+                
+                const now = new Date();
+                const record = {
+                    timestamp: now.getTime(),
+                    date: now.toISOString().split('T')[0],
+                    time: now.toLocaleTimeString('en-US', { hour12: false }),
+                    driverName: driverName,
+                    vehicleType: vehicleType,
+                    vehicleNumber: vehicleNumber,
+                    type: type,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    locationName: location.name
+                };
+                
+                // Send to Google Sheets
+                await saveToGoogleSheet(record);
+                
+                // Clear inputs
+                document.getElementById('driverName').value = '';
+                document.getElementById('vehicleType').value = '';
+                document.getElementById('vehicleNumber').value = '';
+                
+                // Show success message
+                if (type === 'IN') {
+                    showMessage(`Welcome, ${driverName}! 🚗\nDrive safe.`, 'success');
+                } else {
+                    showMessage(`Thank you, ${driverName}! 🙏\nFor driving safely. Take rest.`, 'success');
+                }
+                
+                // Refresh records if manager is logged in
+                if (isManagerMode) {
+                    setTimeout(() => loadRecords(), 1000);
+                }
+                
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            } finally {
+                setButtonsDisabled(false);
+            }
+        }
+        
+        // ============================================
+        // GEOLOCATION
+        // ============================================
+        function getGeolocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    resolve({
+                        latitude: 'N/A',
+                        longitude: 'N/A',
+                        name: 'Location not available'
+                    });
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude.toFixed(6);
+                        const lon = position.coords.longitude.toFixed(6);
+                        
+                        resolve({
+                            latitude: lat,
+                            longitude: lon,
+                            name: `${lat}, ${lon}`
+                        });
+                    },
+                    (error) => {
+                        console.warn('Geolocation error:', error);
+                        resolve({
+                            latitude: 'N/A',
+                            longitude: 'N/A',
+                            name: 'Location denied'
+                        });
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            });
+        }
+        
+        // ============================================
+        // GOOGLE SHEETS INTEGRATION
+        // ============================================
+        async function saveToGoogleSheet(record) {
+            if (GOOGLE_SHEET_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                throw new Error('Please configure your Google Sheet URL first. Check setup instructions.');
+            }
+            
+            const response = await fetch(GOOGLE_SHEET_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'addRecord',
+                    record: record
+                })
+            });
+            
+            // Note: no-cors means we can't read the response, but the request will still work
+            return true;
+        }
+        
+        async function loadRecords() {
+            if (GOOGLE_SHEET_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                showMessage('Please configure your Google Sheet URL first.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(GOOGLE_SHEET_URL + '?action=getRecords');
+                const data = await response.json();
+                
+                if (data.records) {
+                    allRecords = data.records;
+                    displayRecords(allRecords);
+                }
+            } catch (error) {
+                showMessage('Error loading records: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkPendingTimeIn(driverName, vehicleNumber) {
+            if (GOOGLE_SHEET_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                return false;
+            }
+            
+            try {
+                const response = await fetch(GOOGLE_SHEET_URL + '?action=getRecords');
+                const data = await response.json();
+                
+                if (data.records && data.records.length > 0) {
+                    const lastRecord = data.records.find(r => 
+                        r.driverName.toLowerCase() === driverName.toLowerCase() &&
+                        r.vehicleNumber.toLowerCase() === vehicleNumber.toLowerCase()
+                    );
+                    
+                    return lastRecord && lastRecord.type === 'IN';
+                }
+                return false;
+            } catch (error) {
+                console.error('Error checking pending time in:', error);
+                return false;
+            }
+        }
+        
+        // ============================================
+        // DISPLAY RECORDS
+        // ============================================
+        function displayRecords(recordsToDisplay) {
+            const tbody = document.getElementById('recordsBody');
+            
+            if (recordsToDisplay.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: #999;">No records found</td></tr>';
+                return;
+            }
+            
+            // Group records by driver, vehicle, and date to pair IN/OUT
+            const grouped = [];
+            const processedOuts = new Set();
+            
+            recordsToDisplay.forEach(record => {
+                if (record.type === 'IN') {
+                    // Find matching OUT record
+                    const outRecord = recordsToDisplay.find(r => 
+                        r.type === 'OUT' &&
+                        r.driverName === record.driverName &&
+                        r.vehicleNumber === record.vehicleNumber &&
+                        r.timestamp > record.timestamp &&
+                        !processedOuts.has(r.timestamp)
+                    );
+                    
+                    if (outRecord) {
+                        processedOuts.add(outRecord.timestamp);
+                    }
+                    
+                    grouped.push({
+                        date: record.date,
+                        driverName: record.driverName,
+                        vehicleType: record.vehicleType || '-',
+                        vehicleNumber: record.vehicleNumber,
+                        timeIn: record.time,
+                        timeOut: outRecord ? outRecord.time : '-',
+                        dutyType: calculateDutyType(record.time),
+                        location: formatLocation(record)
+                    });
+                } else if (!processedOuts.has(record.timestamp)) {
+                    // OUT record without matching IN (orphaned)
+                    grouped.push({
+                        date: record.date,
+                        driverName: record.driverName,
+                        vehicleType: record.vehicleType || '-',
+                        vehicleNumber: record.vehicleNumber,
+                        timeIn: '-',
+                        timeOut: record.time,
+                        dutyType: '-',
+                        location: formatLocation(record)
+                    });
+                }
+            });
+            
+            tbody.innerHTML = grouped.map(record => `
+                <tr>
+                    <td>${record.date}</td>
+                    <td>${record.driverName}</td>
+                    <td>${record.vehicleType}</td>
+                    <td>${record.vehicleNumber}</td>
+                    <td>${record.timeIn}</td>
+                    <td>${record.timeOut}</td>
+                    <td><strong>${record.dutyType}</strong></td>
+                    <td style="font-size: 11px;">${record.location}</td>
+                </tr>
+            `).join('');
+        }
+        
+        function formatLocation(record) {
+            if (record.latitude && record.longitude && record.latitude !== 'N/A') {
+                return `<a href="https://www.google.com/maps?q=${record.latitude},${record.longitude}" target="_blank" style="color: #2196F3;">📍 Map</a>`;
+            }
+            return record.locationName || 'N/A';
+        }
+        
+        function calculateDutyType(timeString) {
+            const [hours, minutes] = timeString.split(':').map(Number);
+            const totalMinutes = hours * 60 + minutes;
+            
+            const dayStart = 8 * 60;  // 8 AM
+            const dayEnd = 18 * 60;   // 6 PM
+            
+            if (totalMinutes >= dayStart && totalMinutes < dayEnd) {
+                return '☀️ Day';
+            } else {
+                return '🌙 Night';
+            }
+        }
+        
+        // ============================================
+        // FILTERS
+        // ============================================
+        function filterRecords() {
+            const filterDate = document.getElementById('filterDate').value;
+            const filterDriver = document.getElementById('filterDriver').value.toLowerCase();
+            const filterVehicleType = document.getElementById('filterVehicleType').value;
+            
+            let filtered = allRecords;
+            
+            if (filterDate) {
+                filtered = filtered.filter(r => r.date === filterDate);
+            }
+            
+            if (filterDriver) {
+                filtered = filtered.filter(r => r.driverName.toLowerCase().includes(filterDriver));
+            }
+            
+            if (filterVehicleType) {
+                filtered = filtered.filter(r => r.vehicleType === filterVehicleType);
+            }
+            
+            displayRecords(filtered);
+        }
+        
+        // ============================================
+        // EXPORT TO CSV
+        // ============================================
+        function exportToCSV() {
+            if (allRecords.length === 0) {
+                showMessage('No records to export', 'error');
+                return;
+            }
+            
+            const grouped = [];
+            const processedOuts = new Set();
+            
+            allRecords.forEach(record => {
+                if (record.type === 'IN') {
+                    const outRecord = allRecords.find(r => 
+                        r.type === 'OUT' &&
+                        r.driverName === record.driverName &&
+                        r.vehicleNumber === record.vehicleNumber &&
+                        r.timestamp > record.timestamp &&
+                        !processedOuts.has(r.timestamp)
+                    );
+                    
+                    if (outRecord) {
+                        processedOuts.add(outRecord.timestamp);
+                    }
+                    
+                    grouped.push({
+                        date: record.date,
+                        driverName: record.driverName,
+                        vehicleType: record.vehicleType || '-',
+                        vehicleNumber: record.vehicleNumber,
+                        timeIn: record.time,
+                        timeOut: outRecord ? outRecord.time : '-',
+                        dutyType: calculateDutyType(record.time).replace('☀️ ', '').replace('🌙 ', ''),
+                        location: `${record.latitude}, ${record.longitude}`
+                    });
+                }
+            });
+            
+            const headers = ['Date', 'Driver Name', 'Vehicle Type', 'Vehicle Number', 'Time In', 'Time Out', 'Duty Type', 'Location'];
+            const csv = [
+                headers.join(','),
+                ...grouped.map(r => [
+                    r.date,
+                    `"${r.driverName}"`,
+                    `"${r.vehicleType}"`,
+                    `"${r.vehicleNumber}"`,
+                    r.timeIn,
+                    r.timeOut,
+                    r.dutyType,
+                    `"${r.location}"`
+                ].join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `driver-records-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showMessage('CSV exported successfully!', 'success');
+        }
+        
+        // ============================================
+        // MANAGER LOGIN
+        // ============================================
+        function verifyManager() {
+            const password = document.getElementById('managerPassword').value;
+            
+            if (password === MANAGER_PASSWORD) {
+                isManagerMode = true;
+                document.getElementById('managerSection').style.display = 'none';
+                document.getElementById('recordsSection').style.display = 'block';
+                document.getElementById('managerPassword').value = '';
+                loadRecords();
+                showMessage('Manager logged in successfully', 'success');
+            } else {
+                showMessage('❌ Incorrect password', 'error');
+            }
+        }
+        
+        function logoutManager() {
+            isManagerMode = false;
+            document.getElementById('recordsSection').style.display = 'none';
+            showMessage('Logged out successfully', 'success');
+        }
+        
+        // ============================================
+        // UI HELPERS
+        // ============================================
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.className = type;
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            
+            if (type === 'success' || type === 'loading') {
+                setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, 3000);
+            }
+        }
+        
+        function setButtonsDisabled(disabled) {
+            document.getElementById('timeInBtn').disabled = disabled;
+            document.getElementById('timeOutBtn').disabled = disabled;
+        }
+    </script>
+</body>
+</html>
