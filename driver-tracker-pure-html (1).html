@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .section {
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        /* Hide default radio button */
+        input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Style the label as a button */
+        .radio-label {
+            display: block;
+            padding: 15px 10px;
+            border: 3px solid #ccc;
+            border-radius: 8px;
+            background: #fff;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s ease;
+        }
+        
+        /* When radio is checked, style the label */
+        input[type="radio"]:checked + .radio-label {
+            background: #4CAF50;
+            border-color: #2e7d32;
+            color: white;
+            border-width: 4px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-in {
+            background: #4CAF50;
+        }
+        
+        .btn-out {
+            background: #f44336;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 400px) {
+            .radio-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (min-width: 401px) and (max-width: 500px) {
+            .radio-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+            
+            .radio-label {
+                font-size: 13px;
+                padding: 12px 8px;
+                min-height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Driver Time Tracker</h1>
+        
+        <!-- This form submits directly to Google Sheets -->
+        <form method="POST" action="https://script.google.com/macros/s/AKfycbwfG4AjEVooOr1YB7U-lt2s-ETd3IX7FNxq3x1fP_hpDZiRjK7IBzghOPVt7w7te6zVWQ/exec" id="trackerForm">
+            
+            <!-- Hidden field for action type (will be set by button click) -->
+            <input type="hidden" name="action" id="actionType" value="">
+            
+            <!-- Driver Selection -->
+            <div class="section">
+                <label class="section-title">👤 Select Your Name</label>
+                <div class="radio-grid">
+                    <div>
+                        <input type="radio" name="driver" id="driver1" value="Ismail" required>
+                        <label for="driver1" class="radio-label">Ismail</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver2" value="Lokesh" required>
+                        <label for="driver2" class="radio-label">Lokesh</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver3" value="Melwin" required>
+                        <label for="driver3" class="radio-label">Melwin</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver4" value="Naveen" required>
+                        <label for="driver4" class="radio-label">Naveen</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver5" value="Naveen Chandra" required>
+                        <label for="driver5" class="radio-label">Naveen Chandra</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver6" value="Santhosh" required>
+                        <label for="driver6" class="radio-label">Santhosh</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver7" value="Umesh" required>
+                        <label for="driver7" class="radio-label">Umesh</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver8" value="Mukesh" required>
+                        <label for="driver8" class="radio-label">Mukesh</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="driver" id="driver9" value="Yatheesh" required>
+                        <label for="driver9" class="radio-label">Yatheesh</label>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <!-- Vehicle Selection -->
+            <div class="section">
+                <label class="section-title">🚗 Select Vehicle</label>
+                <div class="radio-grid">
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle1" value="ACLS" required>
+                        <label for="vehicle1" class="radio-label">ACLS</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle2" value="BLS" required>
+                        <label for="vehicle2" class="radio-label">BLS</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle3" value="Etios" required>
+                        <label for="vehicle3" class="radio-label">Etios</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle4" value="College Bus 1" required>
+                        <label for="vehicle4" class="radio-label">College Bus 1</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle5" value="College Bus 2" required>
+                        <label for="vehicle5" class="radio-label">College Bus 2</label>
+                    </div>
+                    <div>
+                        <input type="radio" name="vehicle" id="vehicle6" value="College Bus 3" required>
+                        <label for="vehicle6" class="radio-label">College Bus 3</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button type="submit" name="submit" value="IN" class="btn btn-in">🟢 Time In</button>
+                <button type="submit" name="submit" value="OUT" class="btn btn-out">🔴 Time Out</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
