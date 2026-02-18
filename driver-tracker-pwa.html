@@ -80,36 +80,46 @@
         }
         
         function submitForm(action) {
-            const driver = document.querySelector('input[name="driver"]:checked');
-            const vehicle = document.querySelector('input[name="vehicle"]:checked');
+    const driver = document.querySelector('input[name="driver"]:checked');
+    const vehicle = document.querySelector('input[name="vehicle"]:checked');
+    
+    if (!driver || !vehicle) {
+        showMessage('⚠️ Select driver and vehicle', 'error');
+        return;
+    }
+    
+    const container = document.querySelector('.container');
+    container.classList.add('loading');
+    
+    const formData = new FormData();
+    formData.append('driver', driver.value);
+    formData.append('vehicle', vehicle.value);
+    formData.append('submit', action);
+    
+    fetch(SCRIPT_URL, { method: 'POST', body: formData })
+        .then(response => response.text())
+        .then(result => {
+            container.classList.remove('loading');
             
-            if (!driver || !vehicle) {
-                showMessage('⚠️ Please select both driver and vehicle', 'error');
-                return;
+            if (result === 'ALREADY_IN') {
+                showMessage('❌ Already timed in! Time out first.', 'error');
+            } else if (result === 'NOT_IN') {
+                showMessage('❌ Not timed in! Time in first.', 'error');
+            } else if (result.startsWith('SUCCESS')) {
+                const msg = action === 'IN' 
+                    ? `Welcome ${driver.value}! Drive Safe.`
+                    : `Thank you ${driver.value} for safe drive, take rest.`;
+                showMessage(msg, 'success');
+                document.getElementById('trackerForm').reset();
+            } else {
+                showMessage('❌ Error occurred', 'error');
             }
-            
-            const container = document.querySelector('.container');
-            container.classList.add('loading');
-            
-            const formData = new FormData();
-            formData.append('driver', driver.value);
-            formData.append('vehicle', vehicle.value);
-            formData.append('submit', action);
-            
-            fetch(SCRIPT_URL, { method: 'POST', body: formData })
-                .then(() => {
-                    container.classList.remove('loading');
-                    const msg = action === 'IN' 
-                        ? `Welcome ${driver.value}! Drive Safe.`
-                        : `Thank you ${driver.value} for safe drive, take rest.`;
-                    showMessage(msg, 'success');
-                    document.getElementById('trackerForm').reset();
-                })
-                .catch(() => {
-                    container.classList.remove('loading');
-                    showMessage('❌ Error. Please try again.', 'error');
-                });
-        }
+        })
+        .catch(() => {
+            container.classList.remove('loading');
+            showMessage('❌ Connection error', 'error');
+        });
+}
         
         function showMessage(text, type) {
             const box = document.getElementById('messageBox');
