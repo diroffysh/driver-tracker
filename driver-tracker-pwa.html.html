@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="manifest" href="manifest.json">
+    <title>Driver Attendance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 10px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { font-size: 20px; margin-bottom: 15px; color: #333; text-align: center; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 16px; font-weight: 700; color: #333; margin-bottom: 10px; display: block; }
+        .radio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+        .radio-label { display: block; padding: 15px 10px; border: 3px solid #ccc; border-radius: 8px; background: #fff; text-align: center; font-size: 14px; font-weight: 600; color: #333; cursor: pointer; min-height: 55px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        input[type="radio"]:checked + .radio-label { background: #4CAF50; border-color: #2e7d32; color: white; border-width: 4px; }
+        .action-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn { padding: 18px; border: none; border-radius: 8px; font-size: 17px; font-weight: 700; cursor: pointer; color: white; width: 100%; }
+        .btn-in { background: #4CAF50; }
+        .btn-out { background: #f44336; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .message { padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: 600; font-size: 15px; display: none; line-height: 1.4; }
+        .message.show { display: block; animation: slideDown 0.3s; }
+        .success { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { opacity: 0.6; pointer-events: none; }
+        @media (max-width: 400px) { .radio-grid, .action-buttons { grid-template-columns: 1fr; } }
+        @media (min-width: 401px) and (max-width: 500px) { .radio-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; } .radio-label { font-size: 13px; padding: 12px 8px; min-height: 50px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Driver Attendance</h1>
+        
+        <div id="messageBox" class="message"></div>
+        
+        <form id="trackerForm">
+            <div class="section">
+                <label class="section-title">👤 Select Your Name</label>
+                <div class="radio-grid">
+                    <div><input type="radio" name="driver" id="d1" value="Driver 1" required><label for="d1" class="radio-label">Driver 1</label></div>
+                    <div><input type="radio" name="driver" id="d2" value="Driver 2" required><label for="d2" class="radio-label">Driver 2</label></div>
+                    <div><input type="radio" name="driver" id="d3" value="Driver 3" required><label for="d3" class="radio-label">Driver 3</label></div>
+                    <div><input type="radio" name="driver" id="d4" value="Driver 4" required><label for="d4" class="radio-label">Driver 4</label></div>
+                    <div><input type="radio" name="driver" id="d5" value="Driver 5" required><label for="d5" class="radio-label">Driver 5</label></div>
+                    <div><input type="radio" name="driver" id="d6" value="Driver 6" required><label for="d6" class="radio-label">Driver 6</label></div>
+                    <div><input type="radio" name="driver" id="d7" value="Driver 7" required><label for="d7" class="radio-label">Driver 7</label></div>
+                    <div><input type="radio" name="driver" id="d8" value="Driver 8" required><label for="d8" class="radio-label">Driver 8</label></div>
+                    <div><input type="radio" name="driver" id="d9" value="Driver 9" required><label for="d9" class="radio-label">Driver 9</label></div>
+                    <div><input type="radio" name="driver" id="d10" value="Driver 10" required><label for="d10" class="radio-label">Driver 10</label></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <label class="section-title">🚗 Select Vehicle</label>
+                <div class="radio-grid">
+                    <div><input type="radio" name="vehicle" id="v1" value="Ambulance Big" required><label for="v1" class="radio-label">Ambulance Big</label></div>
+                    <div><input type="radio" name="vehicle" id="v2" value="Ambulance Small" required><label for="v2" class="radio-label">Ambulance Small</label></div>
+                    <div><input type="radio" name="vehicle" id="v3" value="Hatchback Car" required><label for="v3" class="radio-label">Hatchback Car</label></div>
+                    <div><input type="radio" name="vehicle" id="v4" value="College Bus 1" required><label for="v4" class="radio-label">College Bus 1</label></div>
+                    <div><input type="radio" name="vehicle" id="v5" value="College Bus 2" required><label for="v5" class="radio-label">College Bus 2</label></div>
+                    <div><input type="radio" name="vehicle" id="v6" value="College Bus 3" required><label for="v6" class="radio-label">College Bus 3</label></div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" class="btn btn-in" id="timeInBtn" onclick="submitForm('IN')">🟢 Time In</button>
+                <button type="button" class="btn btn-out" id="timeOutBtn" onclick="submitForm('OUT')">🔴 Time Out</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // REPLACE WITH YOUR GOOGLE APPS SCRIPT URL
+        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(function() {
+                console.log('Service worker registration failed');
+            });
+        }
+        
+        function submitForm(action) {
+            const driver = document.querySelector('input[name="driver"]:checked');
+            const vehicle = document.querySelector('input[name="vehicle"]:checked');
+            
+            if (!driver || !vehicle) {
+                showMessage('⚠️ Please select both driver and vehicle', 'error');
+                return;
+            }
+            
+            // Disable buttons during submission
+            setButtonsDisabled(true);
+            const container = document.querySelector('.container');
+            container.classList.add('loading');
+            
+            const formData = new FormData();
+            formData.append('driver', driver.value);
+            formData.append('vehicle', vehicle.value);
+            formData.append('submit', action);
+            
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: formData,
+                mode: 'no-cors'
+            })
+            .then(function() {
+                // Since no-cors mode, we can't read response
+                // Assume success and show message
+                container.classList.remove('loading');
+                setButtonsDisabled(false);
+                
+                const msg = action === 'IN' 
+                    ? 'Welcome ' + driver.value + '! Drive Safe.'
+                    : 'Thank you ' + driver.value + ' for a safe drive, Take rest.';
+                
+                showMessage(msg, 'success');
+                document.getElementById('trackerForm').reset();
+            })
+            .catch(function(error) {
+                container.classList.remove('loading');
+                setButtonsDisabled(false);
+                showMessage('❌ Connection error. Please try again.', 'error');
+            });
+        }
+        
+        function showMessage(text, type) {
+            const box = document.getElementById('messageBox');
+            box.className = 'message show ' + type;
+            box.textContent = text;
+            
+            setTimeout(function() {
+                box.classList.remove('show');
+            }, 2000);
+        }
+        
+        function setButtonsDisabled(disabled) {
+            document.getElementById('timeInBtn').disabled = disabled;
+            document.getElementById('timeOutBtn').disabled = disabled;
+        }
+    </script>
+</body>
+</html>
