@@ -76,7 +76,7 @@
 
     <script>
         // REPLACE WITH YOUR GOOGLE APPS SCRIPT URL
-        const SCRIPT_URL = https://script.google.com/macros/s/AKfycbxBhMMFQc57Ok9WY3HLaik9xqzeh16nDxPMjZzmFupZDQ-FyzJgVV4C4L65mnAB7CvVoA/exec;
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBhMMFQc57Ok9WY3HLaik9xqzeh16nDxPMjZzmFupZDQ-FyzJgVV4C4L65mnAB7CvVoA/exec";
         // Register service worker for PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(function() {
@@ -98,16 +98,16 @@
             const container = document.querySelector('.container');
             container.classList.add('loading');
             
-            const formData = new FormData();
-            formData.append('driver', driver.value);
-            formData.append('vehicle', vehicle.value);
-            formData.append('submit', action);
-            
-            fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: formData,
-                mode: 'no-cors'
-            })
+            const params = new URLSearchParams();
+params.append('driver', driver.value);
+params.append('vehicle', vehicle.value);
+params.append('submit', action);
+
+fetch(SCRIPT_URL, { 
+    method: 'POST', 
+    body: params,
+    mode: 'no-cors'
+})
             .then(function() {
                 // Since no-cors mode, we can't read response
                 // Assume success and show message
