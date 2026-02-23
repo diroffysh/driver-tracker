@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a5f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>🚗 Driver Attendance</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f4f8;
+  color: #1e293b;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: #fff;
+  padding: 18px 16px 20px;
+  text-align: center;
+}
+.header h1 {
+  font-size: clamp(1.2rem, 5vw, 1.6rem);
+  font-weight: 800;
+}
+.live-clock {
+  margin-top: 8px;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.date-line { display: none; }
+
+/* ── SECTION CARD ── */
+.section {
+  background: #fff;
+  margin: 12px 10px;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+}
+.section-header {
+  padding: 12px 14px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #64748b;
+  border-bottom: 1px solid #f1f5f9;
+  transition: color 0.3s;
+}
+
+/* ── BUTTON GRID (driver / vehicle) ── */
+.btn-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px;
+}
+
+@media (max-width: 320px) {
+  .btn-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px; }
+}
+
+.grid-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8faff;
+  font-family: inherit;
+  font-size: clamp(0.72rem, 2.8vw, 0.86rem);
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  min-height: 52px;
+  line-height: 1.3;
+  text-align: center;
+  word-break: break-word;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.grid-btn:active { transform: scale(0.93); }
+.grid-btn.selected {
+  background: #1e40af;
+  border-color: #1e40af;
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(30,64,175,0.35);
+}
+
+/* ── TIME IN / TIME OUT BUTTONS ── */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 10px;
+  border: none;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: clamp(0.88rem, 3.5vw, 1rem);
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.12s, opacity 0.2s;
+  min-height: 80px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.action-btn:active { transform: scale(0.95); }
+.action-btn .icon { font-size: clamp(1.5rem, 6vw, 1.9rem); line-height: 1; }
+
+.btn-time-in {
+  background: linear-gradient(135deg, #15803d, #22c55e);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(21,128,61,0.35);
+}
+.btn-time-out {
+  background: linear-gradient(135deg, #b91c1c, #ef4444);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(185,28,28,0.32);
+}
+
+/* ── TOAST — fixed bottom, always visible regardless of scroll ── */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(160px);
+  z-index: 9999;
+  width: min(94vw, 400px);
+  border-radius: 18px;
+  padding: 16px 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.32), 0 2px 8px rgba(0,0,0,0.1);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+#toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+#toast.toast-in  { background: #14532d; border: 2px solid #4ade80; }
+#toast.toast-out { background: #7f1d1d; border: 2px solid #f87171; }
+
+.toast-emoji    { font-size: 2.2rem; flex-shrink: 0; }
+.toast-body     { flex: 1; min-width: 0; }
+.toast-headline { font-size: clamp(0.95rem, 3.8vw, 1.05rem); font-weight: 900; color: #fff; }
+.toast-sub      { font-size: clamp(0.78rem, 3vw, 0.85rem); color: rgba(255,255,255,0.82); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toast-ts       { font-size: 0.76rem; color: rgba(255,255,255,0.55); margin-top: 5px; font-weight: 700; }
+
+.toast-bar {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 4px;
+  width: 100%;
+  transform-origin: left center;
+}
+#toast.toast-in  .toast-bar { background: #4ade80; }
+#toast.toast-out .toast-bar { background: #f87171; }
+@keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* ── HISTORY LOG ── */
+.history-list {
+  padding: 0 10px 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.history-item:last-child { border-bottom: none; }
+.badge {
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+.badge-in  { background: #dcfce7; color: #15803d; }
+.badge-out { background: #fee2e2; color: #b91c1c; }
+.h-info   { flex: 1; min-width: 0; }
+.h-name   { font-size: clamp(0.8rem, 3vw, 0.88rem); font-weight: 800; }
+.h-veh    { font-size: clamp(0.72rem, 2.8vw, 0.78rem); color: #64748b; }
+.h-time   { font-size: clamp(0.72rem, 2.8vw, 0.78rem); color: #94a3b8; font-weight: 700; flex-shrink: 0; }
+.empty-log { text-align: center; color: #94a3b8; padding: 22px 0; font-size: 0.85rem; }
+
+/* ── ERROR PULSE ── */
+@keyframes pulse-error {
+  0%,100% { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  30%  { box-shadow: 0 0 0 4px rgba(220,38,38,0.45); }
+  60%  { box-shadow: 0 0 0 2px rgba(220,38,38,0.2); }
+}
+.section.error {
+  animation: pulse-error 0.7s ease;
+}
+.section.error .section-header { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>🚗 Driver Attendance</h1>
+  <div class="live-clock" id="clock">--:-- --</div>
+  <div class="date-line" id="dateline"></div>
+</div>
+
+<!-- DRIVER SELECTION -->
+<div class="section" id="sec-driver">
+  <div class="section-header">👤 Select Your Name</div>
+  <div class="btn-grid" id="driver-grid">
+    <button class="grid-btn" onclick="pick('driver', this, 'Ismail')">Ismail</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Lokesh')">Lokesh</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Melwin')">Melwin</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Naveen')">Naveen</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Naveen Chandra')">Naveen Chandra</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Sajesh')">Sajesh</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Santhosh')">Santhosh</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Umesh')">Umesh</button>
+    <button class="grid-btn" onclick="pick('driver', this, 'Yathesh')">Yathesh</button>
+      </div>
+</div>
+
+<!-- VEHICLE SELECTION -->
+<div class="section" id="sec-vehicle">
+  <div class="section-header">🚗 Select Vehicle</div>
+  <div class="btn-grid" id="vehicle-grid">
+   <button class="grid-btn" onclick="pick('vehicle', this, 'ACLS')">🚑 ACLS<br>Big</button>
+    <button class="grid-btn" onclick="pick('vehicle', this, 'BLS')">🚐 BLS<br>Small</button>
+    <button class="grid-btn" onclick="pick('vehicle', this, 'ETIOS')">🚗 ETIOS<br>Car</button>
+    <button class="grid-btn" onclick="pick('vehicle', this, 'ZNC Bus 1')">🚌 ZNC<br>Bus 1</button>
+    <button class="grid-btn" onclick="pick('vehicle', this, 'ZNC Bus 2')">🚌 ZNC<br>Bus 2</button>
+    <button class="grid-btn" onclick="pick('vehicle', this, 'ZNC Bus 3')">🚌 ZNC<br>Bus 3</button>
+  </div>
+</div>
+
+<!-- TIME IN / TIME OUT -->
+<div class="section">
+  <div class="section-header">⏱️ Mark Attendance</div>
+  <div class="action-grid">
+    <button class="action-btn btn-time-in" onclick="mark('IN')">
+      <span class="icon">🟢</span>
+      <span>Time In</span>
+    </button>
+    <button class="action-btn btn-time-out" onclick="mark('OUT')">
+      <span class="icon">🔴</span>
+      <span>Time Out</span>
+    </button>
+  </div>
+</div>
+
+
+
+<!-- TOAST (fixed, always visible above everything) -->
+<div id="toast">
+  <div class="toast-emoji" id="t-emoji"></div>
+  <div class="toast-body">
+    <div class="toast-headline" id="t-head"></div>
+    <div class="toast-sub"      id="t-sub"></div>
+    <div class="toast-ts"       id="t-ts"></div>
+  </div>
+  <div class="toast-bar" id="t-bar"></div>
+</div>
+
+<script>
+/* ── CLOCK ── */
+var DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+function tick(){
+  var d = new Date();
+  var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+  var ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('clock').textContent = pad(h)+':'+pad(m)+':'+pad(s)+' '+ap;
+  document.getElementById('dateline').textContent =
+    DAYS[d.getDay()]+', '+MONTHS[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear();
+}
+tick(); setInterval(tick, 1000);
+
+/* ── STATE ── */
+var sel = { driver: null, vehicle: null };
+
+function pick(type, btn, value) {
+  var gridId = type === 'driver' ? 'driver-grid' : 'vehicle-grid';
+  var btns = document.getElementById(gridId).querySelectorAll('.grid-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('selected');
+  btn.classList.add('selected');
+  sel[type] = value;
+  document.getElementById(type === 'driver' ? 'sec-driver' : 'sec-vehicle').classList.remove('error');
+}
+
+/* ── MARK ── */
+var toastTimer = null;
+var DURATION   = 4500;
+
+function mark(type) {
+  var ok = true;
+  if (!sel.driver) {
+    flashError('sec-driver'); ok = false;
+  }
+  if (!sel.vehicle) {
+    flashError('sec-vehicle'); ok = false;
+  }
+  if (!ok) return;
+
+  var now = new Date();
+  var timeStr = fmtTime(now);
+  var driver  = sel.driver;
+  var vehicle = sel.vehicle;
+
+  showToast(type, driver, vehicle, timeStr);
+
+  // Reset immediately — don't wait for location
+  document.querySelectorAll('.grid-btn').forEach(function(b){ b.classList.remove('selected'); });
+  sel.driver  = null;
+  sel.vehicle = null;
+
+  // Silently capture location in background
+  captureLocation(type, driver, vehicle, timeStr);
+}
+
+/* ── CONFIG — paste your Apps Script URL here ── */
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxc6hIbUT8FoKMhh__BuMBjcR_6qXAt_gYH2Cgthn4urcSWnTnap3-jjfuCyTegs2ponw/exec';
+
+/* ── LOCATION + SHEET SUBMIT ── */
+var attendanceLog = [];
+
+function captureLocation(type, driver, vehicle, timeStr) {
+  var entry = {
+    type: type,
+    driver: driver,
+    vehicle: vehicle,
+    time: timeStr,
+    timestamp: new Date().toISOString(),
+    lat: '',
+    lng: '',
+    accuracy: '',
+    locationStatus: 'pending'
+  };
+
+  if (!navigator.geolocation) {
+    entry.locationStatus = 'unavailable';
+    attendanceLog.push(entry);
+    sendToSheet(entry);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      entry.lat            = pos.coords.latitude;
+      entry.lng            = pos.coords.longitude;
+      entry.accuracy       = Math.round(pos.coords.accuracy);
+      entry.locationStatus = 'captured';
+      attendanceLog.push(entry);
+      sendToSheet(entry);
+    },
+    function(err) {
+      entry.locationStatus = 'denied';
+      attendanceLog.push(entry);
+      sendToSheet(entry);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+}
+
+function sendToSheet(entry) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    console.warn('[Sheet] No script URL set.');
+    return;
+  }
+
+  /* Build GET URL with params matching your Apps Script exactly */
+  var url = SCRIPT_URL
+    + '?driver='   + encodeURIComponent(entry.driver)
+    + '&vehicle='  + encodeURIComponent(entry.vehicle)
+    + '&submit='   + encodeURIComponent(entry.type)
+    + '&lat='      + encodeURIComponent(entry.lat)
+    + '&lng='      + encodeURIComponent(entry.lng)
+    + '&accuracy=' + encodeURIComponent(entry.accuracy);
+
+  fetch(url, { method: 'GET', mode: 'no-cors' })
+    .then(function() {
+      console.log('[Sheet] Sent:', entry.driver, entry.type);
+    })
+    .catch(function(err) {
+      console.warn('[Sheet] Failed:', err);
+    });
+}
+
+function fmtTime(d) {
+  var h = d.getHours(), m = d.getMinutes();
+  var ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return pad(h) + ':' + pad(m) + ' ' + ap;
+}
+
+function flashError(id) {
+  var el = document.getElementById(id);
+  el.classList.remove('error');
+  /* force reflow */
+  void el.offsetWidth;
+  el.classList.add('error');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ── TOAST ── */
+function showToast(type, driver, vehicle, time) {
+  var toast = document.getElementById('toast');
+  var bar   = document.getElementById('t-bar');
+
+  if (toastTimer) clearTimeout(toastTimer);
+
+  // Reset
+  toast.classList.remove('show','toast-in','toast-out');
+  bar.style.animation = 'none';
+  void toast.offsetWidth;
+
+  document.getElementById('t-emoji').textContent = type === 'IN' ? '✅' : '🏁';
+  document.getElementById('t-head').textContent  = type === 'IN' ? 'Clocked In Successfully!' : 'Clocked Out Successfully!';
+  document.getElementById('t-sub').textContent   = driver + '  ·  ' + vehicle;
+  document.getElementById('t-ts').textContent    = '⏰ ' + time;
+
+  toast.classList.add('show', type === 'IN' ? 'toast-in' : 'toast-out');
+  bar.style.animation = 'shrink ' + DURATION + 'ms linear forwards';
+
+  toastTimer = setTimeout(function(){
+    toast.classList.remove('show');
+  }, DURATION);
+}
+
+
+</script>
+</body>
+</html>
